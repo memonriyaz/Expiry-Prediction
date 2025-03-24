@@ -314,6 +314,11 @@ def index():
 def serve_static(path):
     return send_from_directory('static', path)
 
+# Add a specific route for the test interface
+@app.route('/test')
+def test_interface():
+    return send_from_directory('static', 'gemini_food_tester.html')
+
 @app.route('/api/food-safety', methods=['POST'])
 def food_safety_endpoint():
     """Endpoint to analyze food safety"""

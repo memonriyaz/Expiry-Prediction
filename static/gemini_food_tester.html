@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Safety Analyzer</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #0f9d58; /* Google green */
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .gemini-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+
+      .gemini-label img {
+        height: 24px;
+        margin-right: 10px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #444;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: #0f9d58; /* Google green */
+        color: white;
+        border: none;
+        padding: 14px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 10px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+      }
+
+      button:hover {
+        background-color: #0c8043;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 30px;
+      }
+
+      .spinner {
+        border: 5px solid rgba(15, 157, 88, 0.1);
+        border-top: 5px solid #0f9d58;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result {
+        margin-top: 30px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .result h2 {
+        color: #0f9d58;
+        margin-bottom: 20px;
+      }
+
+      .food-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .food-icon {
+        font-size: 2.5em;
+        margin-right: 15px;
+        background-color: #f1f8e9;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .food-details h3 {
+        margin: 0 0 5px;
+      }
+
+      .food-category {
+        display: inline-block;
+        background-color: #e8f5e9;
+        color: #0f9d58;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .high-risk {
+        background-color: #ffebee;
+        color: #d32f2f;
+      }
+
+      .shelf-life {
+        margin: 25px 0;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .storage-option {
+        flex: 1;
+        min-width: 200px;
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .storage-option.recommended {
+        background-color: #e8f5e9;
+        border: 2px solid #0f9d58;
+      }
+
+      .storage-name {
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+
+      .storage-hours {
+        font-size: 1.2em;
+        font-weight: 700;
+      }
+
+      .status-card {
+        margin: 25px 0;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .status-title {
+        font-size: 1.2em;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .status-message {
+        font-size: 1.1em;
+      }
+
+      .fresh {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      .safe_today {
+        background-color: #f1f8e9;
+        color: #558b2f;
+      }
+
+      .consume_soon,
+      .consume_immediately {
+        background-color: #fff8e1;
+        color: #ff8f00;
+      }
+
+      .change_storage {
+        background-color: #fff8e1;
+        color: #ef6c00;
+      }
+
+      .unsafe,
+      .expired {
+        background-color: #ffebee;
+        color: #c62828;
+      }
+
+      .safety-guidelines {
+        background-color: #e3f2fd;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+      }
+
+      .safety-guidelines h4 {
+        color: #1565c0;
+        margin-top: 0;
+        margin-bottom: 15px;
+      }
+
+      .guidelines-list {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .guidelines-list li {
+        margin-bottom: 8px;
+      }
+
+      .ingredients {
+        margin: 20px 0;
+      }
+
+      .ingredients h4 {
+        margin-bottom: 10px;
+      }
+
+      .ingredient-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .ingredient-tag {
+        background-color: #f1f8e9;
+        color: #558b2f;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+      }
+
+      .timeline {
+        margin: 25px 0;
+        padding: 0 10px;
+      }
+
+      .timeline-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #555;
+      }
+
+      .timeline-bar {
+        height: 10px;
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        margin-top: 5px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .timeline-progress {
+        height: 100%;
+        background-color: #0f9d58;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 5px;
+      }
+
+      .timeline-danger {
+        height: 100%;
+        background-color: #ffcdd2;
+        position: absolute;
+        border-radius: 5px;
+      }
+
+      .timeline-marker {
+        position: absolute;
+        width: 4px;
+        height: 16px;
+        background-color: #f44336;
+        top: -3px;
+        margin-left: -2px;
+      }
+
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+        color: #757575;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Food Safety Analyzer</h1>
+
+      <div class="form-group">
+        <label for="foodName">Food Name:</label>
+        <input
+          type="text"
+          id="foodName"
+          placeholder="Enter food name (e.g., chicken curry, pizza, salad)"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="storageType">Current Storage Condition:</label>
+        <select id="storageType">
+          <option value="Room Temp">Room Temperature</option>
+          <option value="Refrigerated">Refrigerated</option>
+          <option value="Frozen">Frozen</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="hoursSincePrepared">Hours Since Prepared:</label>
+        <input
+          type="number"
+          id="hoursSincePrepared"
+          min="0"
+          value="2"
+          step="0.5"
+        />
+      </div>
+
+      <button id="analyzeBtn">Analyze Food Safety</button>
+
+      <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Analyzing your food safety...</p>
+      </div>
+
+      <div id="result" class="result hidden">
+        <h2>Food Safety Analysis</h2>
+
+        <div class="food-header">
+          <div class="food-icon">🍲</div>
+          <div class="food-details">
+            <h3 id="result-food-name">Food Name</h3>
+            <span id="result-food-category" class="food-category"
+              >Category</span
+            >
+            <span id="result-risk-badge" class="food-category high-risk hidden"
+              >High Risk</span
+            >
+          </div>
+        </div>
+
+        <div class="ingredients">
+          <h4>Ingredients:</h4>
+          <div id="result-ingredients" class="ingredient-tags"></div>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-title">Safety Timeline</div>
+          <div class="timeline-bar">
+            <div id="timeline-danger" class="timeline-danger"></div>
+            <div id="timeline-progress" class="timeline-progress"></div>
+            <div id="timeline-current" class="timeline-marker"></div>
+          </div>
+          <div class="timeline-labels">
+            <span>Prepared</span>
+            <span id="timeline-danger-label">Danger Zone</span>
+            <span id="timeline-expiry-label">Expiry</span>
+          </div>
+        </div>
+
+        <div id="result-status-card" class="status-card">
+          <div class="status-title">Safety Status</div>
+          <div id="result-safety-message" class="status-message">
+            Safe to consume
+          </div>
+        </div>
+
+        <h3>Shelf Life by Storage Type</h3>
+        <div id="result-shelf-life" class="shelf-life">
+          <!-- Will be populated by JavaScript -->
+        </div>
+
+        <div class="safety-guidelines">
+          <h4>Safety Guidelines</h4>
+          <ul id="result-safety-guidelines" class="guidelines-list">
+            <!-- Will be populated by JavaScript -->
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const API_URL = "http://localhost:5000/api/food-safety";
+
+        // Get elements
+        const foodNameInput = document.getElementById("foodName");
+        const storageTypeSelect = document.getElementById("storageType");
+        const hoursSincePreparedInput =
+          document.getElementById("hoursSincePrepared");
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const loadingSection = document.getElementById("loading");
+        const resultSection = document.getElementById("result");
+
+        // Add event listener to the analyze button
+        analyzeBtn.addEventListener("click", analyzeFoodSafety);
+
+        // Allow Enter key in the food name input to submit
+        foodNameInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            analyzeFoodSafety();
+          }
+        });
+
+        async function analyzeFoodSafety() {
+          // Get input values
+          const foodName = foodNameInput.value.trim();
+          const storageType = storageTypeSelect.value;
+          const hoursSincePrepared = parseFloat(hoursSincePreparedInput.value);
+
+          // Validate inputs
+          if (!foodName) {
+            alert("Please enter a food name");
+            return;
+          }
+
+          if (isNaN(hoursSincePrepared) || hoursSincePrepared < 0) {
+            alert("Hours since prepared must be a positive number");
+            return;
+          }
+
+          // Show loading, hide result
+          loadingSection.classList.remove("hidden");
+          resultSection.classList.add("hidden");
+
+          try {
+            // Make API request
+            const response = await fetch(API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                foodName: foodName,
+                storageType: storageType,
+                hoursSincePrepared: hoursSincePrepared,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                `API request failed with status ${response.status}`
+              );
+            }
+
+            const data = await response.json();
+            displayResult(data);
+          } catch (error) {
+            console.error("Error analyzing food safety:", error);
+            alert(
+              "Error analyzing food safety. Make sure the API server is running at http://localhost:5000"
+            );
+          } finally {
+            // Hide loading
+            loadingSection.classList.add("hidden");
+          }
+        }
+
+        function displayResult(data) {
+          // Set food details
+          document.getElementById("result-food-name").textContent =
+            data.food_name;
+          document.getElementById("result-food-category").textContent =
+            data.food_category;
+
+          // Set high risk badge
+          const riskBadge = document.getElementById("result-risk-badge");
+          if (data.high_risk) {
+            riskBadge.classList.remove("hidden");
+          } else {
+            riskBadge.classList.add("hidden");
+          }
+
+          // Set food icon based on category
+          const foodIcon = document.querySelector(".food-icon");
+          switch (data.food_category) {
+            case "Meat":
+              foodIcon.textContent = "🥩";
+              break;
+            case "Seafood":
+              foodIcon.textContent = "🦐";
+              break;
+            case "Dairy":
+              foodIcon.textContent = "🧀";
+              break;
+            case "Vegetables":
+              foodIcon.textContent = "🥦";
+              break;
+            case "Fruits":
+              foodIcon.textContent = "🍎";
+              break;
+            case "Grains":
+              foodIcon.textContent = "🌾";
+              break;
+            case "Baked Goods":
+              foodIcon.textContent = "🍞";
+              break;
+            default:
+              foodIcon.textContent = "🍲";
+          }
+
+          // Set ingredients
+          const ingredientsContainer =
+            document.getElementById("result-ingredients");
+          ingredientsContainer.innerHTML = "";
+          data.ingredients.forEach((ingredient) => {
+            const tag = document.createElement("span");
+            tag.className = "ingredient-tag";
+            tag.textContent = ingredient;
+            ingredientsContainer.appendChild(tag);
+          });
+
+          // Set safety status
+          const statusCard = document.getElementById("result-status-card");
+          statusCard.className = "status-card " + data.safety_status;
+          document.getElementById("result-safety-message").textContent =
+            data.safety_message;
+
+          // Set timeline
+          const timelineProgress = document.getElementById("timeline-progress");
+          const timelineDanger = document.getElementById("timeline-danger");
+          const timelineCurrent = document.getElementById("timeline-current");
+          const timelineDangerLabel = document.getElementById(
+            "timeline-danger-label"
+          );
+          const timelineExpiryLabel = document.getElementById(
+            "timeline-expiry-label"
+          );
+
+          const currentStorage = storageTypeSelect.value;
+          const totalShelfLife = data.shelf_life[currentStorage];
+          const dangerZoneHours = data.danger_zone_hours;
+          const hoursSincePrepared = parseFloat(hoursSincePreparedInput.value);
+
+          const dangerZonePercent = (dangerZoneHours / totalShelfLife) * 100;
+          const currentPercent = (hoursSincePrepared / totalShelfLife) * 100;
+
+          timelineDanger.style.width = `${dangerZonePercent}%`;
+          timelineProgress.style.width = `${Math.min(currentPercent, 100)}%`;
+          timelineCurrent.style.left = `${Math.min(currentPercent, 100)}%`;
+
+          timelineDangerLabel.textContent = `Danger Zone (${dangerZoneHours} hrs)`;
+          timelineExpiryLabel.textContent = `Expiry (${totalShelfLife} hrs)`;
+
+          // Set shelf life by storage type
+          const shelfLifeContainer =
+            document.getElementById("result-shelf-life");
+          shelfLifeContainer.innerHTML = "";
+
+          const storageTypes = ["Room Temp", "Refrigerated", "Frozen"];
+          storageTypes.forEach((storageType) => {
+            const hours = data.shelf_life[storageType];
+            const isRecommended = data.recommended_storage === storageType;
+            const isCurrent = currentStorage === storageType;
+
+            const storageDiv = document.createElement("div");
+            storageDiv.className = `storage-option${
+              isRecommended ? " recommended" : ""
+            }`;
+
+            const storageName = document.createElement("div");
+            storageName.className = "storage-name";
+            storageName.textContent =
+              storageType +
+              (isCurrent ? " (Current)" : "") +
+              (isRecommended ? " (Recommended)" : "");
+
+            const storageHours = document.createElement("div");
+            storageHours.className = "storage-hours";
+            storageHours.textContent = formatHours(hours);
+
+            storageDiv.appendChild(storageName);
+            storageDiv.appendChild(storageHours);
+            shelfLifeContainer.appendChild(storageDiv);
+          });
+
+          // Set safety guidelines
+          const guidelinesList = document.getElementById(
+            "result-safety-guidelines"
+          );
+          guidelinesList.innerHTML = "";
+          data.safety_guidelines.forEach((guideline) => {
+            const li = document.createElement("li");
+            li.textContent = guideline;
+            guidelinesList.appendChild(li);
+          });
+
+          // Show result
+          resultSection.classList.remove("hidden");
+        }
+
+        function formatHours(hours) {
+          if (hours >= 24) {
+            const days = Math.floor(hours / 24);
+            const remainingHours = hours % 24;
+            if (remainingHours === 0) {
+              return `${days} day${days !== 1 ? "s" : ""}`;
+            }
+            return `${days} day${days !== 1 ? "s" : ""}, ${remainingHours} hr${
+              remainingHours !== 1 ? "s" : ""
+            }`;
+          }
+          return `${hours} hour${hours !== 1 ? "s" : ""}`;
+        }
+      });
+    </script>
+  </body>
+</html>
