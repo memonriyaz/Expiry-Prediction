@@ -428,7 +428,8 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const API_URL = "http://localhost:5000/api/food-safety";
+        const API_URL =
+          "https://expiry-prediction.onrender.com/api/food-safety";
 
         // Get elements
         const foodNameInput = document.getElementById("foodName");
@@ -495,7 +496,7 @@
           } catch (error) {
             console.error("Error analyzing food safety:", error);
             alert(
-              "Error analyzing food safety. Make sure the API server is running at http://localhost:5000"
+              "Error analyzing food safety. Make sure the API server is running at https://expiry-prediction.onrender.com"
             );
           } finally {
             // Hide loading
