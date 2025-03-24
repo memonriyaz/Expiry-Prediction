@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Safety API</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #0f9d58;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+      }
+
+      h2 {
+        color: #1a73e8;
+        margin-top: 30px;
+      }
+
+      pre {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+
+      code {
+        font-family: monospace;
+      }
+
+      .endpoint {
+        background-color: #f9f9f9;
+        border-left: 4px solid #0f9d58;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 0 5px 5px 0;
+      }
+
+      .method {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+
+      .get {
+        background-color: #e7f0fe;
+        color: #1a73e8;
+      }
+
+      .post {
+        background-color: #e6f4ea;
+        color: #0f9d58;
+      }
+
+      .btn {
+        display: inline-block;
+        background-color: #0f9d58;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+
+      .btn:hover {
+        background-color: #0c8043;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Food Safety Analysis API</h1>
+
+    <p>
+      This API provides food safety analysis based on food type, storage
+      conditions, and time since preparation.
+    </p>
+
+    <a href="gemini_food_tester.html" class="btn">Launch Web Interface</a>
+
+    <h2>API Documentation</h2>
+
+    <div class="endpoint">
+      <span class="method post">POST</span> <code>/api/food-safety</code>
+      <p>
+        Analyze food safety based on food name, storage type, and time since
+        preparation.
+      </p>
+
+      <h3>Request Body</h3>
+      <pre><code>{
+  "foodName": "string",     // Name of the food item (required)
+  "storageType": "string",  // One of: "Room Temp", "Refrigerated", "Frozen"
+  "hoursSincePrepared": number  // Hours since the food was prepared
+}</code></pre>
+
+      <h3>Example Request</h3>
+      <pre><code>fetch('/api/food-safety', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    foodName: "chicken curry",
+    storageType: "Room Temp",
+    hoursSincePrepared: 2
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data));</code></pre>
+
+      <h3>Response</h3>
+      <pre><code>{
+  "food_name": "chicken curry",
+  "food_category": "Meat",
+  "ingredients": ["chicken", "curry"],
+  "high_risk": true,
+  "safety_status": "consume_soon",
+  "safety_message": "This meat should be consumed soon.",
+  "danger_zone_hours": 2,
+  "shelf_life": {
+    "Room Temp": 2,
+    "Refrigerated": 48,
+    "Frozen": 2160
+  },
+  "recommended_storage": "Refrigerated",
+  "safety_guidelines": [
+    "Keep meat items at safe temperatures.",
+    "Wash hands before and after handling food.",
+    "Use separate cutting boards for raw meats and vegetables.",
+    "High-risk foods should not be left at room temperature for more than 2 hours.",
+    "Cook meat to appropriate internal temperatures to ensure safety."
+  ],
+  "remaining_hours": 0,
+  "hours_before_unsafe": 0
+}</code></pre>
+    </div>
+
+    <div class="endpoint">
+      <span class="method get">GET</span> <code>/api/storage-types</code>
+      <p>Get available storage types.</p>
+
+      <h3>Example Response</h3>
+      <pre><code>["Room Temp", "Refrigerated", "Frozen"]</code></pre>
+    </div>
+
+    <div class="endpoint">
+      <span class="method get">GET</span> <code>/api/health</code>
+      <p>Check API health status.</p>
+
+      <h3>Example Response</h3>
+      <pre><code>{
+  "status": "ok",
+  "timestamp": "2023-06-15T12:34:56.789Z",
+  "gemini_model": true,
+  "gemini_model_name": "gemini-pro",
+  "version": "1.0.0"
+}</code></pre>
+    </div>
+
+    <h2>Integration</h2>
+    <p>
+      To integrate this API with your main project, you can make HTTP requests
+      to the endpoints above.
+    </p>
+
+    <pre><code>// Example integration in JavaScript
+async function analyzeFoodSafety(foodName, storageType, hoursSincePrepared) {
+  const response = await fetch('https://your-deployed-url.com/api/food-safety', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      foodName,
+      storageType,
+      hoursSincePrepared
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`API request failed with status ${response.status}`);
+  }
+  
+  return await response.json();
+}</code></pre>
+
+    <footer
+      style="
+        margin-top: 40px;
+        color: #666;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+      "
+    >
+      <p>Food Safety API v1.0.0</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+web: gunicorn gemini_food_analyzer:app 
